@@ -1,0 +1,145 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        0
+      ],
+      "id": "81729216-8251-4229-b934-8b6f34df4d1e",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "resume": "form",
+        "formTitle": "Domínio para investigação",
+        "formDescription": "Domínio para investigação",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "target_domain",
+              "placeholder": "nasa.gov",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        16,
+        0
+      ],
+      "id": "921ccfe8-ec83-4fa5-aac6-d94b58263fc0",
+      "name": "Wait",
+      "webhookId": "aefc76b7-aa11-4de3-aed5-7da3bdb619e1"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.hackertarget.com/dnslookup/?q={{ $json.target_domain }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        160,
+        0
+      ],
+      "id": "177f327c-eadc-4102-b3f1-5e5ed2386ac7",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Busca o domínio direto no node Wait\nconst targetDomain = $node[\"Wait\"].json[\"target_domain\"] || 'unknown-domain';\n\n// Pega os dados DNS do HTTP Request\nconst dnsRaw = $input.first().json.data;\n\n// Se não tiver dados DNS, erro\nif (!dnsRaw) {\n  return {\n    json: {\n      error: 'No DNS data found',\n      filename: 'OSINT_ERROR.txt',\n      content: 'Error: No DNS data received from previous node',\n      format: 'text'\n    }\n  };\n}\n\n// Timestamp para o nome do arquivo\nconst now = new Date();\nconst timestamp = now.getFullYear().toString() +\n  String(now.getMonth() + 1).padStart(2, '0') +\n  String(now.getDate()).padStart(2, '0') + '_' +\n  String(now.getHours()).padStart(2, '0') +\n  String(now.getMinutes()).padStart(2, '0') +\n  String(now.getSeconds()).padStart(2, '0');\n\n// Processa os dados DNS\nconst dnsLines = dnsRaw.split('\\n').filter(line => line.trim() !== '');\n\nconst dnsRecords = {\n  A: [],\n  AAAA: [],\n  MX: [],\n  NS: [],\n  TXT: [],\n  SOA: []\n};\n\ndnsLines.forEach(line => {\n  if (line.includes(' : ')) {\n    const [type, value] = line.split(' : ', 2);\n    const cleanType = type.trim();\n    if (dnsRecords.hasOwnProperty(cleanType)) {\n      dnsRecords[cleanType].push(value.trim());\n    }\n  }\n});\n\n// Relatório formatado (Markdown)\nconst report = `# 🔍 OSINT Infrastructure Analysis\n\n## Target Domain\n${targetDomain}\n\n## Analysis Type\nDNS Lookup\n\n## DNS Infrastructure\n\n### A Records (IPv4)\n${dnsRecords.A.length > 0 ? dnsRecords.A.join('\\n') : 'Nenhum registro encontrado'}\n\n### AAAA Records (IPv6)\n${dnsRecords.AAAA.length > 0 ? dnsRecords.AAAA.join('\\n') : 'Nenhum registro encontrado'}\n\n### MX Records (Mail)\n${dnsRecords.MX.length > 0 ? dnsRecords.MX.join('\\n') : 'Nenhum registro encontrado'}\n\n### NS Records (Nameservers)\n${dnsRecords.NS.length > 0 ? dnsRecords.NS.join('\\n') : 'Nenhum registro encontrado'}\n\n### TXT Records\n${dnsRecords.TXT.length > 0 ? dnsRecords.TXT.map(txt => `- ${txt}`).join('\\n') : 'Nenhum registro encontrado'}\n\n---\nRelatório gerado automaticamente via n8n OSINT Workflow\n`;\n\n// Retorna 3 itens (um para cada formato)\nreturn [\n  {\n    json: {\n      filename: `OSINT_${targetDomain}_${timestamp}.md`,\n      content: report,\n      format: 'markdown'\n    }\n  },\n  {\n    json: {\n      filename: `OSINT_${targetDomain}_${timestamp}.json`,\n      content: JSON.stringify({\n        target_domain: targetDomain,\n        analysis_type: 'DNS Lookup',\n        dns_data: dnsRecords,\n        generated_at: now.toISOString()\n      }, null, 2),\n      format: 'json'\n    }\n  },\n  {\n    json: {\n      filename: `OSINT_${targetDomain}_${timestamp}.txt`,\n      content: `OSINT DNS Report\\n================\\n\\nDomain: ${targetDomain}\\nDate: ${now.toLocaleString()}\\n\\n${Object.entries(dnsRecords).map(([type, values]) => \n        values.length > 0 ? `[${type}]\\n${values.join('\\n')}` : ''\n      ).filter(Boolean).join('\\n\\n')}`,\n      format: 'text'\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        304,
+        0
+      ],
+      "id": "f41dde13-fcad-4421-af59-217342aadaca",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "content",
+        "options": {
+          "fileName": "={{ $json.filename }}"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        0
+      ],
+      "id": "c34b1730-47de-4755-a4f0-76cd3b622bbe",
+      "name": "Convert to File"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "fb90ee06-3bad-47d3-a147-29a36768c9e8",
+  "meta": {
+    "instanceId": "7a2529c7bf14c9238b7116b25b43e069985a95f2ea62d5d3ec9c268463eacdf2"
+  },
+  "id": "y18145CtUUV_PpZf4fEtn",
+  "tags": []
+}
