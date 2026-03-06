@@ -21,9 +21,16 @@ Automation workflow built with n8n for domain infrastructure analysis.
 
 ## Example Output
 
+In Markdown
 ![Example Output](images/Output_MARKDOWN_md.png)
+
+In Json
 ![Example Output](images/output_JSON.png)
+
+In TXT
 ![Example Output](images/Output_TXT.png)
+
+And, it can be done with a lot more archive formats, like PDF.
 
 ## How it works
 
