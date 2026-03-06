@@ -21,7 +21,9 @@ Automation workflow built with n8n for domain infrastructure analysis.
 
 ## Example Output
 
-(exemplo de relatório)
+![Example Output](images/Output_MARKDOWN_md.png)
+![Example Output](images/output_JSON.png)
+![Example Output](images/Output_TXT.png)
 
 ## How it works
 
