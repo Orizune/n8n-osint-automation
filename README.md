@@ -17,7 +17,7 @@ Automation workflow built with n8n for domain infrastructure analysis.
 
 ## Workflow
 
-(image do workflow)
+![Workflow](images/Workflow_pt_1.png)
 
 ## Example Output
 
