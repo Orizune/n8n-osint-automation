@@ -2,6 +2,12 @@
 
 Automation workflow built with n8n for domain infrastructure analysis.
 
+This project would improve to a more powerful tool for scanning data with OSINT, local LLMs (via Ollama) and LLMs via API.
+
+This project pretends to be modular and adaptable to multi-use, and as a base for new projects using low-code and open-source tools for automation and interaction, with cost-efficient policy, using resources like tokens for LLM as last resort, but with full availability. (When not to use LLM/IA for cost efficiency).
+
+I'm a Brazilian citizen, if you are too, please help and contribute, you know that in our country it is hard to work and develop at the same time. 
+
 ## Features
 
 - DNS lookup
